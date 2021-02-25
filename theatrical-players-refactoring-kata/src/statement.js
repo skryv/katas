@@ -1,10 +1,9 @@
 function statement(invoice, plays) {
   let printer = statementPrinter();
-
-  let { volumeCredits } = calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer);
-  printer.printTotalOwedAmount(calculateTotalAmount());
-  printer.printVolumeCredits(volumeCredits);
-
+  printer.printStatementHeader();
+  printer.printOrderLines();
+  printer.printTotalOwedAmount();
+  printer.printVolumeCredits();
   return printer.getStatement();
 
   function statementPrinter() {
@@ -15,18 +14,28 @@ function statement(invoice, plays) {
     }).format;
 
     let statement = '';
-    printStatementHeader();
 
     function printStatementHeader() {
       statement += `Statement for ${invoice.customer}\n`;
     }
 
-    function printVolumeCredits(volumeCredits) {
-      statement += `You earned ${volumeCredits} credits\n`;
+    function printVolumeCredits() {
+      statement += `You earned ${calculateTotalVolumeCredits()} credits\n`;
     }
 
-    function printTotalOwedAmount(totalAmount) {
-      statement += `Amount owed is ${format(totalAmount / 100)}\n`;
+    function printTotalOwedAmount() {
+      statement += `Amount owed is ${format(calculateTotalAmount() / 100)}\n`;
+    }
+
+    function printOrderLines() {
+      for (let perf of invoice.performances) {
+        const play = plays[perf.playID];
+
+        const instance = createPlayInstance(plays[perf.playID].type);
+        let thisAmount = instance.calculateAmount(perf);
+
+        printOrderLine(play, thisAmount, perf);
+      }
     }
 
     function printOrderLine(play, thisAmount, perf) {
@@ -41,12 +50,16 @@ function statement(invoice, plays) {
       getStatement,
       printStatementHeader,
       printVolumeCredits,
-      printOrderLine,
+      printOrderLines,
       printTotalOwedAmount
     };
   }
 
   function tragedy() {
+    function calculateVolumeCredits(perf) {
+      return calculateBaseVolumeCredits(perf);
+    }
+
     function calculateAmount(perf) {
       let thisAmount = 40000;
       if (perf.audience > 30) {
@@ -56,11 +69,16 @@ function statement(invoice, plays) {
     }
 
     return {
+      calculateVolumeCredits,
       calculateAmount
     };
   }
 
   function comedy() {
+    function calculateVolumeCredits(perf) {
+      return calculateBaseVolumeCredits(perf) + calculateBonusCredits(perf);
+    }
+
     function calculateAmount(perf) {
       let thisAmount = 30000;
       if (perf.audience > 20) {
@@ -71,12 +89,27 @@ function statement(invoice, plays) {
     }
 
     return {
+      calculateVolumeCredits,
       calculateAmount
     };
   }
 
+  function calculateBonusCredits(perf) {
+    return Math.floor(perf.audience / 5);
+  }
+
+  function calculateBaseVolumeCredits(perf) {
+    return Math.max(perf.audience - 30, 0);
+  }
+
   function createPlayInstance(type) {
-    return type === 'tragedy' ? tragedy() : comedy();
+    if (type === 'tragedy') {
+      return tragedy();
+    } else if (type === 'comedy') {
+      return comedy();
+    }
+
+    throw new Error(`unknown type: ${type}`);
   }
 
   function calculateTotalAmount() {
@@ -86,53 +119,11 @@ function statement(invoice, plays) {
     }, 0);
   }
 
-  function calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer) {
-    let volumeCredits = 0;
-    let totalAmount = 0;
-
-    for (let perf of invoice.performances) {
-      const play = plays[perf.playID];
-
-      const instance = createPlayInstance(plays[perf.playID].type);
-      let thisAmount = instance.calculateAmount(perf);
-
-      switch (play.type) {
-        case "tragedy":
-          volumeCredits += calculateTragedyVolumeCredits(perf);
-
-          break;
-        case "comedy":
-          volumeCredits += calculateComedyVolumeCredits(perf);
-
-          break;
-        default:
-          throw new Error(`unknown type: ${play.type}`);
-      }
-      // print line for this order
-      printer.printOrderLine(play, thisAmount, perf);
-      totalAmount += thisAmount;
-    }
-
-    return {
-      totalAmount,
-      volumeCredits
-    };
-  }
-
-  function calculateComedyVolumeCredits(perf) {
-    return calculateBaseVolumeCredits(perf) + calculateBonusCredits(perf);
-  }
-
-  function calculateBonusCredits(perf) {
-    return Math.floor(perf.audience / 5);
-  }
-
-  function calculateTragedyVolumeCredits(perf) {
-    return calculateBaseVolumeCredits(perf);
-  }
-
-  function calculateBaseVolumeCredits(perf) {
-    return Math.max(perf.audience - 30, 0);
+  function calculateTotalVolumeCredits() {
+    return invoice.performances.reduce((totalVolumeCredits, currentPerformacne) => {
+      const instance = createPlayInstance(plays[currentPerformacne.playID].type);
+      return totalVolumeCredits + instance.calculateVolumeCredits(currentPerformacne);
+    }, 0);
   }
 }
 
