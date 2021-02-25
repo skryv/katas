@@ -1,19 +1,54 @@
 function statement(invoice, plays) {
   let totalAmount = 0;
   let volumeCredits = 0;
-  let result = `Statement for ${invoice.customer}\n`;
+  let printer = statementPrinter();
+
   const format = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
   }).format;
 
-  calculateAmountAndVolumeCreditsAndAlsoAddToResult();
-  result += `Amount owed is ${format(totalAmount / 100)}\n`;
-  result += `You earned ${volumeCredits} credits\n`;
-  return result;
+  calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer);
+  printer.printTotalOwedAmount();
+  printer.printVolumeCredits();
 
-  function calculateAmountAndVolumeCreditsAndAlsoAddToResult() {
+  return printer.getStatement();
+
+  function statementPrinter() {
+    let statement = '';
+    printStatementHeader();
+
+    function printStatementHeader() {
+      statement += `Statement for ${invoice.customer}\n`;
+    }
+
+    function printVolumeCredits() {
+      statement += `You earned ${volumeCredits} credits\n`;
+    }
+
+    function printTotalOwedAmount() {
+      statement += `Amount owed is ${format(totalAmount / 100)}\n`;
+    }
+
+    function printOrderLine(play, thisAmount, perf) {
+      statement += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
+    }
+
+    function getStatement() {
+      return statement;
+    }
+
+    return {
+      getStatement,
+      printStatementHeader,
+      printVolumeCredits,
+      printOrderLine,
+      printTotalOwedAmount
+    };
+  }
+
+  function calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer) {
     for (let perf of invoice.performances) {
       const play = plays[perf.playID];
       let thisAmount = 0;
@@ -32,9 +67,7 @@ function statement(invoice, plays) {
           throw new Error(`unknown type: ${play.type}`);
       }
       // print line for this order
-      result += ` ${play.name}: ${format(thisAmount / 100)} (${
-        perf.audience
-      } seats)\n`;
+      printer.printOrderLine(play, thisAmount, perf);
       totalAmount += thisAmount;
     }
   }
