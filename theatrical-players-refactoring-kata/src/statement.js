@@ -55,16 +55,16 @@ function statement(invoice, plays) {
   }
 
   function calculateTotalAmount() {
-    return invoice.performances.reduce((totalAmount, currentPerformacne) => {
-      const instance = createPlayInstance(plays[currentPerformacne.playID].type);
-      return totalAmount + instance.calculateAmount(currentPerformacne);
+    return invoice.performances.reduce((totalAmount, currentPerformance) => {
+      const instance = createPlayInstance(plays[currentPerformance.playID].type);
+      return totalAmount + instance.calculateAmount(currentPerformance);
     }, 0);
   }
 
   function calculateTotalVolumeCredits() {
-    return invoice.performances.reduce((totalVolumeCredits, currentPerformacne) => {
-      const instance = createPlayInstance(plays[currentPerformacne.playID].type);
-      return totalVolumeCredits + instance.calculateVolumeCredits(currentPerformacne);
+    return invoice.performances.reduce((totalVolumeCredits, currentPerformance) => {
+      const instance = createPlayInstance(plays[currentPerformance.playID].type);
+      return totalVolumeCredits + instance.calculateVolumeCredits(currentPerformance);
     }, 0);
   }
 }
