@@ -1,21 +1,19 @@
 function statement(invoice, plays) {
-  let totalAmount = 0;
-  let volumeCredits = 0;
   let printer = statementPrinter();
 
-  const format = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format;
-
-  calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer);
-  printer.printTotalOwedAmount();
-  printer.printVolumeCredits();
+  let { volumeCredits } = calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer);
+  printer.printTotalOwedAmount(calculateTotalAmount());
+  printer.printVolumeCredits(volumeCredits);
 
   return printer.getStatement();
 
   function statementPrinter() {
+    const format = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    }).format;
+
     let statement = '';
     printStatementHeader();
 
@@ -23,11 +21,11 @@ function statement(invoice, plays) {
       statement += `Statement for ${invoice.customer}\n`;
     }
 
-    function printVolumeCredits() {
+    function printVolumeCredits(volumeCredits) {
       statement += `You earned ${volumeCredits} credits\n`;
     }
 
-    function printTotalOwedAmount() {
+    function printTotalOwedAmount(totalAmount) {
       statement += `Amount owed is ${format(totalAmount / 100)}\n`;
     }
 
@@ -48,7 +46,32 @@ function statement(invoice, plays) {
     };
   }
 
+  function calculateTotalAmount() {
+    let totalAmount = 0;
+
+    invoice.performances.forEach(perf => {
+      const play = plays[perf.playID];
+      switch (play.type) {
+        case "tragedy":
+          totalAmount += calculateTragedyAmount(perf);
+
+          break;
+        case "comedy":
+          totalAmount += calculateComedyAmount(perf);
+
+          break;
+        default:
+          throw new Error(`unknown type: ${play.type}`);
+      }
+    });
+
+    return totalAmount;
+  }
+
   function calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer) {
+    let volumeCredits = 0;
+    let totalAmount = 0;
+
     for (let perf of invoice.performances) {
       const play = plays[perf.playID];
       let thisAmount = 0;
@@ -70,6 +93,11 @@ function statement(invoice, plays) {
       printer.printOrderLine(play, thisAmount, perf);
       totalAmount += thisAmount;
     }
+
+    return {
+      totalAmount,
+      volumeCredits
+    };
   }
 
   function calculateComedyVolumeCredits(perf) {
