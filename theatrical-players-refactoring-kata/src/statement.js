@@ -92,15 +92,16 @@ function statement(invoice, plays) {
 
     for (let perf of invoice.performances) {
       const play = plays[perf.playID];
-      let thisAmount = 0;
+
+      const instance = createPlayInstance(plays[perf.playID].type);
+      let thisAmount = instance.calculateAmount(perf);
+
       switch (play.type) {
         case "tragedy":
-          thisAmount += calculateTragedyAmount(perf);
           volumeCredits += calculateTragedyVolumeCredits(perf);
 
           break;
         case "comedy":
-          thisAmount += calculateComedyAmount(perf);
           volumeCredits += calculateComedyVolumeCredits(perf);
 
           break;
@@ -132,23 +133,6 @@ function statement(invoice, plays) {
 
   function calculateBaseVolumeCredits(perf) {
     return Math.max(perf.audience - 30, 0);
-  }
-
-  function calculateComedyAmount(perf) {
-    let thisAmount = 30000;
-    if (perf.audience > 20) {
-      thisAmount += 10000 + 500 * (perf.audience - 20);
-    }
-    thisAmount += 300 * perf.audience;
-    return thisAmount;
-  }
-
-  function calculateTragedyAmount(perf) {
-    let thisAmount = 40000;
-    if (perf.audience > 30) {
-      thisAmount += 1000 * (perf.audience - 30);
-    }
-    return thisAmount;
   }
 }
 
