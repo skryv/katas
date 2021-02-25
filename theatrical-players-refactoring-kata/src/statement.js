@@ -46,26 +46,44 @@ function statement(invoice, plays) {
     };
   }
 
-  function calculateTotalAmount() {
-    let totalAmount = 0;
-
-    invoice.performances.forEach(perf => {
-      const play = plays[perf.playID];
-      switch (play.type) {
-        case "tragedy":
-          totalAmount += calculateTragedyAmount(perf);
-
-          break;
-        case "comedy":
-          totalAmount += calculateComedyAmount(perf);
-
-          break;
-        default:
-          throw new Error(`unknown type: ${play.type}`);
+  function tragedy() {
+    function calculateAmount(perf) {
+      let thisAmount = 40000;
+      if (perf.audience > 30) {
+        thisAmount += 1000 * (perf.audience - 30);
       }
-    });
+      return thisAmount;
+    }
 
-    return totalAmount;
+    return {
+      calculateAmount
+    };
+  }
+
+  function comedy() {
+    function calculateAmount(perf) {
+      let thisAmount = 30000;
+      if (perf.audience > 20) {
+        thisAmount += 10000 + 500 * (perf.audience - 20);
+      }
+      thisAmount += 300 * perf.audience;
+      return thisAmount;
+    }
+
+    return {
+      calculateAmount
+    };
+  }
+
+  function createPlayInstance(type) {
+    return type === 'tragedy' ? tragedy() : comedy();
+  }
+
+  function calculateTotalAmount() {
+    return invoice.performances.reduce((totalAmount, currentPerformacne) => {
+      const instance = createPlayInstance(plays[currentPerformacne.playID].type);
+      return totalAmount + instance.calculateAmount(currentPerformacne);
+    }, 0);
   }
 
   function calculateAmountAndVolumeCreditsAndAlsoAddToResult(printer) {
