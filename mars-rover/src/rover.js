@@ -1,44 +1,38 @@
 const DELTA_PER_DIRECTION = {
-  N: {x: 0, y: 1},
-  E: {x: 1, y: 0},
-  S: {x: 0, y: -1},
-  W: {x: -1, y: 0}
+  N: { x: 0, y: 1 },
+  E: { x: 1, y: 0 },
+  S: { x: 0, y: -1 },
+  W: { x: -1, y: 0 },
 };
 const TURN_LEFT = {
   N: "W",
   E: "N",
   S: "E",
-  W: "S"
+  W: "S",
 };
 const TURN_RIGHT = {
   N: "E",
   E: "S",
   S: "W",
-  W: "N"
+  W: "N",
 };
 
 module.exports = class Rover {
-  #coordinates;
-  #direction;
+  #position;
 
   #COMMANDS = {
     F: () => this.#moveForward(),
     B: () => this.#moveBackward(),
     L: () => this.#turnLeft(),
-    R: () => this.#turnRight()
+    R: () => this.#turnRight(),
   };
 
-  constructor() {
-    this.#coordinates = {x: 0, y: 0};
-    this.#direction = "N";
+  constructor(initialPosition) {
+    this.#position = { ...initialPosition };
   }
 
-  getCoordinates() {
-    return this.#coordinates;
-  }
-
-  getDirection() {
-    return this.#direction;
+  getPosition() {
+    return { ...this.#position };
   }
 
   executeCommands(commands) {
@@ -49,26 +43,22 @@ module.exports = class Rover {
   }
 
   #moveForward() {
-    const delta = DELTA_PER_DIRECTION[this.getDirection()];
-    this.#coordinates = {
-      x: this.#coordinates.x + delta.x,
-      y: this.#coordinates.y + delta.y
-    };
+    const delta = DELTA_PER_DIRECTION[this.#position.direction];
+    this.#position.x = this.#position.x + delta.x;
+    this.#position.y = this.#position.y + delta.y;
   }
 
   #moveBackward() {
-    const delta = DELTA_PER_DIRECTION[this.getDirection()];
-    this.#coordinates = {
-      x: this.#coordinates.x - delta.x,
-      y: this.#coordinates.y - delta.y
-    };
+    const delta = DELTA_PER_DIRECTION[this.#position.direction];
+    this.#position.x = this.#position.x - delta.x;
+    this.#position.y = this.#position.y - delta.y;
   }
 
   #turnLeft() {
-    this.#direction = TURN_LEFT[this.#direction];
+    this.#position.direction = TURN_LEFT[this.#position.direction];
   }
 
   #turnRight() {
-    this.#direction = TURN_RIGHT[this.#direction];
+    this.#position.direction = TURN_RIGHT[this.#position.direction];
   }
 };

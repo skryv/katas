@@ -1,27 +1,26 @@
-const Rover = require('./rover');
+const Rover = require("./rover");
 
 describe("rover", () => {
-
+  // prettier-ignore
   it.each([
-      [[], {x: 0, y: 0}, "N"],
-      [["F"], {x: 0, y: 1}, "N"],
-      [["F", "F"], {x: 0, y: 2}, "N"],
-      [["B"], {x: 0, y: -1}, "N"],
-      [["MUSTAFA"], {x: 0, y: 0}, "N"],
-      [["L"], {x: 0, y: 0}, "W"],
-      [["L", "F"], {x: -1, y: 0}, "W"],
-      [["L", "L"], {x: 0, y: 0 }, "S"],
-      [["L", "L", "L"], {x: 0, y: 0 }, "E"],
-      [["L", "L", "L", "L"], {x: 0, y: 0 }, "N"],
-      [["R"], {x: 0, y: 0 }, "E"],
-      [["R", "R"], {x: 0, y: 0 }, "S"],
-      [["R", "R", "R"], {x: 0, y: 0 }, "W"],
-      [["R", "R", "R", "R"], {x: 0, y: 0 }, "N"],
-    ])("Given [%s] -> (%o, %s)", (commands, coordinates, direction)=>{
-    const rover = new Rover();
+    [{x: 0, y: 0, direction: "N"}, [], {x: 0, y: 0, direction: "N"}],
+    [{x: 0, y: 0, direction: "N"}, ["F"], {x: 0, y: 1, direction: "N"}],
+    [{x: 0, y: -5, direction: "N"}, ["F", "F"], {x: 0, y: -3, direction: "N"}],
+    [{x: 0, y: 0, direction: "N"}, ["B"], {x: 0, y: -1, direction: "N"}],
+    [{x: 0, y: 0, direction: "N"}, ["MUSTAFA"], {x: 0, y: 0, direction: "N"}],
+    [{x: 0, y: 0, direction: "N"}, ["L"], {x: 0, y: 0, direction: "W"}],
+    [{x: 0, y: 3, direction: "N"}, ["L", "F"], {x: -1, y: 3, direction: "W"}],
+    [{x: 0, y: 0, direction: "N"}, ["L", "L"], {x: 0, y: 0, direction: "S"}],
+    [{x: 0, y: 0, direction: "N"}, ["L", "L", "L"], {x: 0, y: 0, direction: "E"}],
+    [{x: 0, y: 0, direction: "N"}, ["L", "L", "L", "L"], {x: 0, y: 0, direction: "N"}],
+    [{x: 0, y: 0, direction: "N"}, ["R"], {x: 0, y: 0, direction: "E"}],
+    [{x: 0, y: 0, direction: "N"}, ["R", "R"], {x: 0, y: 0, direction: "S"}],
+    [{x: 0, y: 0, direction: "N"}, ["R", "R", "R"], {x: 0, y: 0, direction: "W"}],
+    [{x: 0, y: 0, direction: "S"}, ["R", "R", "R", "R"], {x: 0, y: 0, direction: "S"}],
+    [{x: 1, y: 0, direction: "N"}, ["R", "F", "F", "L", "B", "L", "F"], {x: 2, y: -1, direction: "W"}],
+  ])("Starting from %o, given commands [%s]\n -> (%o, %s)", (initialPosition, commands, expectedPosition) => {
+    const rover = new Rover(initialPosition);
     rover.executeCommands(commands);
-
-    expect(rover.getCoordinates()).toEqual(coordinates);
-    expect(rover.getDirection()).toEqual(direction);
-  })
+    expect(rover.getPosition()).toEqual(expectedPosition);
+  });
 });
